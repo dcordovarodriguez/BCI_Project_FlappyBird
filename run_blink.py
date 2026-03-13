@@ -6,7 +6,6 @@ from serial import Serial
 from threading import Thread, Event
 from queue import Queue
 
-lsl_out = False
 # SETTINGS
 
 cyton_in = True
