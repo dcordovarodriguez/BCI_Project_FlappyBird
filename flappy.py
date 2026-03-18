@@ -40,6 +40,8 @@ import pygame
 from pygame.locals import *
 
 from bci_controller import make_bci_controller
+from bci_controller import BCIController
+
 
 FPS = 30
 SCREENWIDTH = 288
@@ -124,7 +126,7 @@ def parse_args():
     )
     parser.add_argument(
         "--model",
-        default="blink_model.joblib",
+        default="model.joblib",
         help="Path to trained model file (default: blink_model.joblib).",
     )
     parser.add_argument(

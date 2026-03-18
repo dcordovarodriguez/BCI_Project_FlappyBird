@@ -7,6 +7,51 @@ from scipy.signal import butter, filtfilt
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.preprocessing import StandardScaler
 
+import joblib
+import numpy as np
+from scipy.signal import butter, filtfilt
+
+
+def butter_bandpass(lowcut, highcut, fs, order=4):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype="band")
+    return b, a
+
+
+def bandpass_epoch(epoch, fs, lowcut=1.0, highcut=10.0, order=4):
+    epoch = np.nan_to_num(epoch, nan=0.0, posinf=0.0, neginf=0.0)
+    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+    out = filtfilt(b, a, epoch, axis=1)
+    out = np.nan_to_num(out, nan=0.0, posinf=0.0, neginf=0.0)
+    return out
+
+
+class BlinkClassifier:
+    def __init__(self, model_path="model.joblib"):
+        self.model = joblib.load(model_path)
+        self.fs = self.model["fs"]
+        self.band = self.model["band"]
+        self.csp = self.model["csp"]
+        self.clf = self.model["clf"]
+
+    def predict_window(self, eeg_window):
+        """
+        eeg_window: numpy array of shape [channels, samples]
+        returns: int (0 = non-blink, 1 = blink)
+        """
+        X = np.expand_dims(eeg_window, axis=0)  # [1, channels, samples]
+        Xf = np.stack(
+            [bandpass_epoch(ep, self.fs, self.band[0], self.band[1]) for ep in X],
+            axis=0
+        )
+        F = self.csp.transform(Xf)
+        pred = self.clf.predict(F)[0]
+        return int(pred)
+
+    def is_blink(self, eeg_window):
+        return self.predict_window(eeg_window) == 1
 
 FS = 250
 EEG_CH = [0, 1]
