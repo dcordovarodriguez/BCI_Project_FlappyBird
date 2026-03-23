@@ -39,7 +39,6 @@ class BCIControllerConfig:
     offline_timestamps_path : optional matching timestamps .npy for offline replay
     realtime_replay         : whether offline replay respects original timing
     """
-
     serial_port: str = "COM3"
     use_synthetic_board: bool = False
     sampling_rate: float = 250.0
